@@ -8,12 +8,5 @@
     "TAP_API_KEY": "@tap_api_key",
     "OPENAI_API_KEY": "@openai_api_key",
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs20.x",
-      "memory": 1024,
-      "maxDuration": 30
-    }
   }
 }
