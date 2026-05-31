@@ -1,0 +1,17 @@
+{
+  "name": "Eqence - Online Reputation Management",
+  "short_name": "Eqence",
+  "description": "AI-powered reputation management for Shopify merchants",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#C41E3A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
