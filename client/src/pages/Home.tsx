@@ -1,6 +1,8 @@
 import { Link } from 'wouter';
+import { useState } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { LanguageToggle } from '../components/LanguageToggle';
+import { Dialog, DialogContent } from '../components/ui/dialog';
 
 const pricingPlans = [
   { id: 'free', name: 'Free', price: 0, features: ['50 reviews/mo', 'Basic monitoring', 'Email alerts', '1 platform'], popular: false },
@@ -19,6 +21,7 @@ const testimonials = [
 
 export default function Home() {
   const { t } = useI18n();
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   return (
     <div className="min-h-screen bg-white">
@@ -61,14 +64,31 @@ export default function Home() {
               {t('hero.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up animate-delay-200">
-              <Link href="/register" className="btn-primary text-lg px-8 py-4 shadow-lg shadow-red-200/50">
+              <Link href="/register" className="btn-primary text-lg px-8 py-4 shadow-lg shadow-red-200/50 text-white font-semibold">
                 {t('hero.cta')}
               </Link>
-              <button className="btn-secondary text-lg px-8 py-4">
+              <button onClick={() => setShowVideoModal(true)} className="btn-secondary text-lg px-8 py-4 text-gray-900 font-semibold">
                 {t('hero.cta2')}
               </button>
             </div>
           </div>
+
+          {/* Video Modal */}
+          <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>
+            <DialogContent className="max-w-4xl">
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="Eqence Demo"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Dashboard mockup */}
           <div className="mt-16 max-w-5xl mx-auto animate-fade-in-up animate-delay-300">
@@ -81,6 +101,10 @@ export default function Home() {
                   <span className="ml-3 text-xs text-gray-400 font-mono">app.eqence.com/dashboard</span>
                 </div>
                 <div className="bg-gray-50 p-6 sm:p-8">
+                  {/* 16:9 Demo Image */}
+                  <div className="w-full aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-6 flex items-center justify-center text-gray-500">
+                    <span className="text-sm">Demo Video - 16:9 Aspect Ratio</span>
+                  </div>
                   <div className="grid grid-cols-4 gap-4 mb-6">
                     {[
                       { label: 'Reputation', value: '85/100', color: 'bg-yellow-50 border-yellow-200' },
