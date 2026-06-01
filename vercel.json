@@ -2,12 +2,6 @@
   "version": 2,
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist",
-  "framework": null,
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs@20.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/:path*",
