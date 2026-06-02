@@ -10,3 +10,5 @@ dist/
 client/public/__manus__/
 backups/
 certbot/
+backend/node_modules
+dist
