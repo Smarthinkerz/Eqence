@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { Dialog, DialogContent } from '../components/ui/dialog';
@@ -22,6 +22,22 @@ const testimonials = [
 export default function Home() {
   const { t } = useI18n();
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleVideoHover = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Autoplay might be blocked, user can click to play
+      });
+    }
+  };
+
+  const handleVideoLeave = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -77,15 +93,16 @@ export default function Home() {
           <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>
             <DialogContent className="max-w-4xl">
               <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                <iframe
+                <video
                   width="100%"
                   height="100%"
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                  title="Eqence Demo"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                  controls
+                  autoPlay
+                  className="w-full h-full"
+                >
+                  <source src="/manus-storage/Eqence_13d5dbda.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </DialogContent>
           </Dialog>
@@ -101,9 +118,23 @@ export default function Home() {
                   <span className="ml-3 text-xs text-gray-400 font-mono">app.eqence.com/dashboard</span>
                 </div>
                 <div className="bg-gray-50 p-6 sm:p-8">
-                  {/* 16:9 Demo Image */}
-                  <div className="w-full aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-6 flex items-center justify-center text-gray-500">
-                    <span className="text-sm">Demo Video - 16:9 Aspect Ratio</span>
+                  {/* 16:9 Demo Video with Hover Autoplay */}
+                  <div
+                    className="w-full aspect-video bg-black rounded-lg mb-6 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg"
+                    onMouseEnter={handleVideoHover}
+                    onMouseLeave={handleVideoLeave}
+                  >
+                    <video
+                      ref={videoRef}
+                      width="100%"
+                      height="100%"
+                      controls
+                      muted={false}
+                      className="w-full h-full"
+                    >
+                      <source src="/manus-storage/Eqence_13d5dbda.mp4" type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
                   </div>
                   <div className="grid grid-cols-4 gap-4 mb-6">
                     {[
@@ -118,10 +149,8 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <div className="h-32 bg-white rounded-lg border border-gray-200 flex items-end p-4 gap-2">
-                    {[40, 55, 45, 60, 52, 70, 65, 75, 72, 80, 85, 90].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-[#C41E3A] to-[#e85d73]" style={{ height: `${h}%` }} />
-                    ))}
+                  <div className="w-full bg-white rounded-lg border border-gray-200 flex items-center justify-center p-4">
+                    <img src="/manus-storage/chartgrok_479c9bfc.gif" alt="Chart" className="w-full h-auto" />
                   </div>
                 </div>
               </div>
@@ -159,8 +188,22 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="section-padding">
-        <div className="container">
+      <section id="how-it-works" className="section-padding relative">
+        {/* Background Video */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 0 }}
+        >
+          <source src="/backgroundvideo.mp4" type="video/mp4" />
+        </video>
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/70 to-white/80" style={{ zIndex: 1 }} />
+        {/* Content */}
+        <div className="container relative" style={{ zIndex: 2 }}>
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('howit.title')}</h2>
             <p className="text-lg text-gray-600">{t('howit.subtitle')}</p>
@@ -176,8 +219,8 @@ export default function Home() {
                   {item.icon}
                 </div>
                 <div className="text-xs font-bold text-[#C41E3A] uppercase tracking-wider mb-2">Step {item.step}</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t(`howit.${item.key}`)}</h3>
-                <p className="text-sm text-gray-600">{t(`howit.${item.key}.desc`)}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 font-bold">{t(`howit.${item.key}`)}</h3>
+                <p className="text-sm text-gray-800 font-medium">{t(`howit.${item.key}.desc`)}</p>
               </div>
             ))}
           </div>

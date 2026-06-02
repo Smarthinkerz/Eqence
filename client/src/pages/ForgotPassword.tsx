@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
+import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../contexts/I18nContext';
 
 export default function ForgotPassword() {
   const { t } = useI18n();
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -11,66 +13,13 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    if (!email) { setError('Email required'); return; }
     setLoading(true);
-
-    try {
-      // Get Resend API key from CMS settings (localStorage) or use env
-      const cmsSettings = JSON.parse(localStorage.getItem('eqence_cms_settings') || '{}');
-      const resendKey = cmsSettings.resendApiKey || import.meta.env.VITE_RESEND_API_KEY || '';
-
-      if (!resendKey) {
-        // Demo mode - simulate sending
-        await new Promise(r => setTimeout(r, 1000));
-        setSent(true);
-        return;
-      }
-
-      const resetToken = btoa(email + ':' + Date.now());
-      const resetLink = `${window.location.origin}/reset-password?token=${resetToken}`;
-
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'Eqence <noreply@eqence.com>',
-          to: [email],
-          subject: 'Reset Your Eqence Password',
-          html: `
-            <div style="font-family: 'Lato', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-              <h1 style="color: #C41E3A; font-size: 28px; margin-bottom: 20px;">Eqence</h1>
-              <h2 style="color: #1a1f3a; font-size: 22px;">Reset Your Password</h2>
-              <p style="color: #555; font-size: 16px; line-height: 1.6;">
-                We received a request to reset your password. Click the button below to set a new password:
-              </p>
-              <a href="${resetLink}" style="display: inline-block; background: #C41E3A; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
-                Reset Password
-              </a>
-              <p style="color: #888; font-size: 14px; margin-top: 30px;">
-                If you didn't request this, you can safely ignore this email. This link expires in 1 hour.
-              </p>
-            </div>
-          `,
-        }),
-      });
-
-      if (res.ok) {
-        setSent(true);
-      } else {
-        // Fallback to demo mode
-        await new Promise(r => setTimeout(r, 500));
-        setSent(true);
-      }
-    } catch {
-      // Demo mode fallback
-      await new Promise(r => setTimeout(r, 500));
-      setSent(true);
-    } finally {
-      setLoading(false);
-    }
+    setError('');
+    const { error: err } = await resetPassword(email);
+    if (err) { setError(err); setLoading(false); return; }
+    setSent(true);
+    setLoading(false);
   };
 
   if (sent) {
@@ -118,18 +67,13 @@ export default function ForgotPassword() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#C41E3A] 
-                         focus:ring-2 focus:ring-[#C41E3A]/20 outline-none transition-all duration-150"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20 outline-none transition-all duration-150"
               placeholder="you@example.com"
               required
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          <button type="submit" disabled={loading} className="w-full btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
             {loading ? 'Sending...' : t('forgot.submit')}
           </button>
         </form>

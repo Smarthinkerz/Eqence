@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../contexts/I18nContext';
 
 export default function Login() {
   const { t } = useI18n();
+  const { signIn } = useAuth();
   const [, navigate] = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,24 +14,12 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    if (!email || !password) { setError('All fields required'); return; }
     setLoading(true);
-
-    // Simulated auth - in production this calls the backend API
-    try {
-      await new Promise(r => setTimeout(r, 800));
-      if (email && password.length >= 6) {
-        localStorage.setItem('eqence_token', 'demo_token_' + Date.now());
-        localStorage.setItem('eqence_user', JSON.stringify({ email, name: email.split('@')[0] }));
-        navigate('/dashboard');
-      } else {
-        setError('Invalid email or password');
-      }
-    } catch {
-      setError('Login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    setError('');
+    const { error: err } = await signIn(email, password);
+    if (err) { setError(err); setLoading(false); }
+    else navigate('/dashboard');
   };
 
   return (
@@ -76,8 +66,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#C41E3A] 
-                           focus:ring-2 focus:ring-[#C41E3A]/20 outline-none transition-all duration-150"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20 outline-none transition-all duration-150"
                 placeholder="you@example.com"
                 required
               />
@@ -89,8 +78,7 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#C41E3A] 
-                           focus:ring-2 focus:ring-[#C41E3A]/20 outline-none transition-all duration-150"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20 outline-none transition-all duration-150"
                 placeholder="••••••••"
                 required
               />
@@ -124,6 +112,7 @@ export default function Login() {
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-500">
+            Don't have an account?{' '}
             <Link href="/register" className="text-[#C41E3A] hover:underline font-medium">
               {t('login.register')}
             </Link>
