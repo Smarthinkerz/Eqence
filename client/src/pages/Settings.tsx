@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Link } from 'wouter';
+import { toast } from 'sonner';
 
 interface StoreSettings {
   shopify_store_url: string;
@@ -68,14 +69,24 @@ export default function Settings() {
   const saveSettings = async () => {
     setSaving(true);
     setSaved(false);
-    const { error } = await supabase
-      .from('store_settings')
-      .upsert({
-        user_id: user!.id,
-        ...settings,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
-    if (!error) setSaved(true);
+    try {
+      const { error } = await supabase
+        .from('store_settings')
+        .upsert({
+          user_id: user!.id,
+          ...settings,
+          updated_at: new Date().toISOString(),
+        });
+      if (error) {
+        console.error('Save error:', error);
+        toast.error('Failed to save settings');
+      } else {
+        setSaved(true);
+        toast.success('Settings saved successfully!');
+      }
+    } catch (err) {
+      console.error('Save exception:', err);
+    }
     setSaving(false);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -108,9 +119,16 @@ export default function Settings() {
             </Link>
             <h1 className="text-xl font-bold text-gray-900">Settings</h1>
           </div>
-          <button onClick={saveSettings} disabled={saving} className="px-5 py-2 bg-[#C41E3A] text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2">
-            {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Changes'}
-          </button>
+          <div className="flex flex-col items-end gap-2">
+            <button onClick={saveSettings} disabled={saving} className="px-5 py-2 bg-[#C41E3A] text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2">
+              {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Changes'}
+            </button>
+            {saved && (
+              <div className="text-sm text-green-600 font-medium animate-pulse">
+                ✓ Settings saved successfully
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -152,7 +170,8 @@ export default function Settings() {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Store URL</label>
-                        <input type="text" value={settings.shopify_store_url} onChange={e => setSettings({...settings, shopify_store_url: e.target.value})} placeholder="mystore.myshopify.com" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/20 outline-none" />
+                        <input type="text" value={settings.shopify_store_url} onChange={e => setSettings({...settings, shopify_store_url: e.target.value})} placeholder="wacandy.myshopify.com" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/20 outline-none" />
+                        <p className="text-xs text-gray-500 mt-1">Use your myshopify.com domain (e.g., wacandy.myshopify.com), not your custom domain</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Access Token</label>

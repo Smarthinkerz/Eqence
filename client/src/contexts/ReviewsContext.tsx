@@ -230,10 +230,23 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const storeUrl = settings.shopify_store_url.replace(/\/$/, '');
+      let storeUrl = settings.shopify_store_url.replace(/\/$/, '').replace(/\/en$/, '').replace(/\/.*$/, '');
+      
+      // If it's a custom domain (e.g., store.wacandy.com), extract the shop name and convert to myshopify.com
+      if (!storeUrl.includes('myshopify.com')) {
+        // Extract shop name from custom domain or URL
+        const parts = storeUrl.split('/');
+        const domain = parts[parts.length - 1] || parts[parts.length - 2];
+        const shopName = domain.split('.')[0]; // Get first part before .com or .wacandy.com
+        storeUrl = `https://${shopName}.myshopify.com`;
+      } else if (!storeUrl.startsWith('http')) {
+        storeUrl = `https://${storeUrl}`;
+      }
 
-      // Try fetching product reviews via Shopify's product metafields (reviews apps store data here)
-      // First get products
+      console.log('Using Shopify store URL:', storeUrl);
+      console.log('Token format:', settings.shopify_access_token.substring(0, 10) + '...');
+
+      // Fetch products from Shopify Admin API
       const productsRes = await fetch(
         `${storeUrl}/admin/api/2024-01/products.json?limit=50&fields=id,title`,
         {
@@ -245,7 +258,12 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
       );
 
       if (!productsRes.ok) {
-        return { count: 0, error: `Shopify API error: ${productsRes.status}. Check your access token and store URL.` };
+        const errorText = await productsRes.text();
+        console.error('Shopify API error response:', errorText);
+        return { 
+          count: 0, 
+          error: `Shopify API error: ${productsRes.status}. Make sure you're using your myshopify.com domain (e.g., wacandy.myshopify.com) and a valid Admin API token.` 
+        };
       }
 
       const productsData = await productsRes.json();
@@ -306,6 +324,7 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
       await fetchStats();
       return { count: importedCount, error: null };
     } catch (err: any) {
+      console.error('Shopify import error:', err);
       return { count: 0, error: err.message || 'Failed to connect to Shopify' };
     }
   };
